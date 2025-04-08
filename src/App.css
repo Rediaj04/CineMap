@@ -54,6 +54,7 @@ body {
   font-size: 1.8rem;
   font-weight: 700;
   background: linear-gradient(45deg, #ff4d4d, #ff8c8c);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: var(--neon-glow);
@@ -248,17 +249,43 @@ body {
 .nearby-results {
   position: absolute;
   top: 2rem;
-  left: 2rem;
-  width: 300px;
-  max-height: calc(100vh - 200px);
+  right: 2rem;
+  width: 350px;
+  max-height: calc(100vh - 180px);
   overflow-y: auto;
   background: var(--glass-bg);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 77, 77, 0.2);
   backdrop-filter: blur(10px);
   z-index: 1000;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--secondary-color);
+}
+
+/* Estilos para navegadores WebKit (Chrome, Safari, etc.) */
+.search-results::-webkit-scrollbar,
+.nearby-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track,
+.nearby-results::-webkit-scrollbar-track {
+  background: var(--secondary-color);
+  border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb,
+.nearby-results::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover,
+.nearby-results::-webkit-scrollbar-thumb:hover {
+  background: #ff6666;
 }
 
 .results-list {
