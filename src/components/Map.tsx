@@ -11,31 +11,30 @@ interface MapProps {
   onLocationSelect: (location: Location) => void;
   userLocation: [number, number] | null;
   zoomToSelected?: boolean;
+  zoomLevel?: number;
 }
 
 // Componente para centrar el mapa en la ubicación seleccionada
-const MapCenter: React.FC<{ location: Location | null, userLocation: [number, number] | null, zoomToSelected?: boolean }> = ({ 
+const MapCenter: React.FC<{ 
+  location: Location | null, 
+  userLocation: [number, number] | null, 
+  zoomToSelected?: boolean,
+  zoomLevel?: number 
+}> = ({ 
   location, 
   userLocation,
-  zoomToSelected = false 
+  zoomToSelected = false,
+  zoomLevel = 12
 }) => {
   const map = useMap();
   
   useEffect(() => {
-    console.log('MapCenter - Props actualizados:', {
-      location,
-      userLocation,
-      zoomToSelected
-    });
-
     if (location && location.position && zoomToSelected) {
-      console.log('MapCenter - Centrando en ubicación seleccionada:', location.position);
-      map.setView(location.position, 12);
+      map.setView(location.position, zoomLevel);
     } else if (!location && userLocation && zoomToSelected) {
-      console.log('MapCenter - Centrando en ubicación del usuario:', userLocation);
-      map.setView(userLocation, 10);
+      map.setView(userLocation, zoomLevel);
     }
-  }, [location, userLocation, map, zoomToSelected]);
+  }, [location, userLocation, map, zoomToSelected, zoomLevel]);
 
   return null;
 };
@@ -90,7 +89,8 @@ const Map: React.FC<MapProps> = ({
   selectedLocation, 
   onLocationSelect, 
   userLocation,
-  zoomToSelected = false 
+  zoomToSelected = false,
+  zoomLevel = 12
 }) => {
   const handleMarkerClick = (movie: Location) => {
     console.log('Map - Marcador clickeado:', movie);
@@ -113,6 +113,7 @@ const Map: React.FC<MapProps> = ({
           location={selectedLocation} 
           userLocation={userLocation} 
           zoomToSelected={true}
+          zoomLevel={zoomLevel}
         />
         
         {/* Mostrar la ubicación del usuario si está disponible */}

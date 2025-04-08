@@ -1,55 +1,45 @@
 import React, { useState, useEffect } from "react";
 import Map from "./components/Map";
 import { Location } from "./types";
-import { getAllMovieLocations, searchMovies, getMovieLocations, getMovieDetails } from "./api/movieLocationsAPI";
+import { getAllMovieLocations, searchMovies, getMovieLocations } from "./api/movieLocationsAPI";
 import "./App.css";
 
 const App: React.FC = () => {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  // Estados base
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Estados para búsqueda
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState<boolean>(false);
+  const [searchLocations, setSearchLocations] = useState<Location[]>([]);
+  
+  // Estados para películas cercanas
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [nearbyMovies, setNearbyMovies] = useState<Location[]>([]);
-  const [showNearbyMovies, setShowNearbyMovies] = useState<boolean>(false);
+  
+  // Estados para película aleatoria
   const [randomMovie, setRandomMovie] = useState<Location | null>(null);
-  const [viewMode, setViewMode] = useState<'all' | 'random' | 'nearby' | 'search'>('all');
   const [randomMovieHistory, setRandomMovieHistory] = useState<number[]>([]);
-  const [movieDetails, setMovieDetails] = useState<any>(null);
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
+  
+  // Estados compartidos
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [viewMode, setViewMode] = useState<'all' | 'random' | 'nearby' | 'search'>('all');
 
-  useEffect(() => {
-    const fetchMovieDetails = async (title: string) => {
-      try {
-        const details = await getMovieDetails(title);
-        if (details && details.Response !== "False") {
-          setMovieDetails(details);
-        }
-      } catch (error) {
-        console.error("Error al obtener detalles de la película:", error);
-      }
-    };
-
-    if (selectedLocation) {
-      fetchMovieDetails(selectedLocation.name);
-    }
-  }, [selectedLocation]);
-
-  // Cargar ubicaciones de películas solo cuando sea necesario
-  const loadLocations = async () => {
+  // Cargar todas las ubicaciones de películas
+  const loadAllLocations = async () => {
     try {
       setLoading(true);
       const movieLocations = await getAllMovieLocations();
-      // Eliminar ubicaciones duplicadas basadas en coordenadas
       const uniqueLocations = movieLocations.filter((location, index, self) =>
         index === self.findIndex((l) => 
           l.position[0] === location.position[0] && 
           l.position[1] === location.position[1]
         )
       );
-      setLocations(uniqueLocations);
+      setAllLocations(uniqueLocations);
       setError(null);
     } catch (err) {
       console.error("Error al cargar ubicaciones:", err);
@@ -60,34 +50,32 @@ const App: React.FC = () => {
   };
 
   const handleRandomMovie = async () => {
-    // Limpiar estados anteriores
-    setShowNearbyMovies(false);
+    // Limpiar TODOS los estados relacionados con otras funcionalidades
     setSearchResults([]);
-    setUserLocation(null);
+    setSearchTerm("");
+    setSearchLocations([]);
     setNearbyMovies([]);
+    setUserLocation(null);
     setSelectedLocation(null);
     setViewMode('random');
     
-    if (locations.length === 0) {
-      await loadLocations();
+    if (allLocations.length === 0) {
+      await loadAllLocations();
     }
     
-    if (locations.length > 0) {
-      // Filtrar películas que no están en el historial
-      const availableMovies = locations.filter(movie => !randomMovieHistory.includes(movie.id));
+    if (allLocations.length > 0) {
+      const availableMovies = allLocations.filter(movie => !randomMovieHistory.includes(movie.id));
       
       if (availableMovies.length === 0) {
-        // Si todas las películas han sido mostradas, reiniciar el historial
         setRandomMovieHistory([]);
-        const randomIndex = Math.floor(Math.random() * locations.length);
-        const randomLocation = locations[randomIndex];
+        const randomIndex = Math.floor(Math.random() * allLocations.length);
+        const randomLocation = allLocations[randomIndex];
         if (randomLocation && randomLocation.position) {
           setRandomMovie(randomLocation);
           setRandomMovieHistory([randomLocation.id]);
           setSelectedLocation(randomLocation);
         }
       } else {
-        // Seleccionar una película aleatoria de las disponibles
         const randomIndex = Math.floor(Math.random() * availableMovies.length);
         const randomLocation = availableMovies[randomIndex];
         if (randomLocation && randomLocation.position) {
@@ -100,14 +88,17 @@ const App: React.FC = () => {
   };
 
   const handleNearbyMovies = async () => {
-    // Limpiar estados anteriores
-    setRandomMovie(null);
+    // Limpiar TODOS los estados relacionados con otras funcionalidades
     setSearchResults([]);
+    setSearchTerm("");
+    setSearchLocations([]);
+    setRandomMovie(null);
+    setRandomMovieHistory([]);
     setSelectedLocation(null);
     setViewMode('nearby');
     
-    if (locations.length === 0) {
-      await loadLocations();
+    if (allLocations.length === 0) {
+      await loadAllLocations();
     }
 
     if (navigator.geolocation) {
@@ -118,29 +109,21 @@ const App: React.FC = () => {
           const userLng = position.coords.longitude;
           setUserLocation([userLat, userLng]);
           
-          // Calcular la distancia entre el usuario y cada película
-          const moviesWithDistance = locations.map(location => {
-            const distance = calculateDistance(
+          const moviesWithDistance = allLocations.map(location => ({
+            ...location,
+            distance: calculateDistance(
               userLat, 
               userLng, 
               location.position[0], 
               location.position[1]
-            );
-            return { ...location, distance };
-          });
+            )
+          }));
           
-          // Ordenar por distancia y tomar solo las 5 más cercanas
           const closestMovies = moviesWithDistance
             .sort((a, b) => (a.distance || 0) - (b.distance || 0))
             .slice(0, 5);
           
-          // Asegurarnos de que las películas cercanas sean diferentes a la aleatoria
-          const filteredMovies = closestMovies.filter(movie => 
-            !randomMovieHistory.includes(movie.id)
-          );
-          
-          setNearbyMovies(filteredMovies);
-          setShowNearbyMovies(true);
+          setNearbyMovies(closestMovies);
           setLoading(false);
         },
         (error) => {
@@ -175,12 +158,13 @@ const App: React.FC = () => {
     
     if (!searchTerm.trim()) return;
     
-    // Limpiar estados anteriores
+    // Limpiar TODOS los estados relacionados con otras funcionalidades
     setRandomMovie(null);
-    setShowNearbyMovies(false);
-    setUserLocation(null);
+    setRandomMovieHistory([]);
     setNearbyMovies([]);
+    setUserLocation(null);
     setSelectedLocation(null);
+    setSearchLocations([]);
     setViewMode('search');
     
     try {
@@ -198,13 +182,16 @@ const App: React.FC = () => {
   const handleMovieSelect = async (movieId: number) => {
     try {
       setLoading(true);
-      console.log('handleMovieSelect - Iniciando selección de película:', movieId);
+      // Limpiar TODOS los estados relacionados con otras funcionalidades
+      setRandomMovie(null);
+      setRandomMovieHistory([]);
+      setNearbyMovies([]);
+      setUserLocation(null);
+      setViewMode('search');
       
       const movieLocations = await getMovieLocations(movieId);
-      console.log('handleMovieSelect - Ubicaciones obtenidas:', movieLocations);
       
       if (movieLocations.length > 0) {
-        // Eliminar ubicaciones duplicadas
         const uniqueLocations = movieLocations.filter((location, index, self) =>
           index === self.findIndex((l) => 
             l.position && 
@@ -215,17 +202,8 @@ const App: React.FC = () => {
         
         if (uniqueLocations.length > 0) {
           const selectedMovie = uniqueLocations[0];
-          console.log('handleMovieSelect - Película seleccionada:', selectedMovie);
-          
-          // Primero establecer el modo de vista
-          setViewMode('search');
-          
-          // Luego establecer la ubicación seleccionada
           setSelectedLocation(selectedMovie);
-          
-          // Finalmente actualizar las ubicaciones
-          setLocations(uniqueLocations);
-          
+          setSearchLocations(uniqueLocations);
           setError(null);
         } else {
           setError("No se encontraron ubicaciones válidas para esta película.");
@@ -250,8 +228,9 @@ const App: React.FC = () => {
         return nearbyMovies;
       case 'search':
         return selectedLocation ? [selectedLocation] : [];
+      case 'all':
       default:
-        return locations;
+        return allLocations;
     }
   };
 
@@ -308,6 +287,7 @@ const App: React.FC = () => {
               onLocationSelect={setSelectedLocation}
               userLocation={userLocation}
               zoomToSelected={true}
+              zoomLevel={15}
             />
           )}
         </div>
@@ -341,7 +321,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {showNearbyMovies && nearbyMovies.length > 0 && (
+        {nearbyMovies.length > 0 && (
           <div className="nearby-results">
             <h3>Películas cerca de ti:</h3>
             <ul className="results-list">
@@ -352,7 +332,7 @@ const App: React.FC = () => {
                   onClick={() => {
                     setSelectedLocation(movie);
                     setViewMode('search');
-                    setLocations([movie]);
+                    setSearchLocations([movie]);
                   }}
                 >
                   {movie.posterUrl ? (
