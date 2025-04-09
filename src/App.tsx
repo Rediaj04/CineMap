@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import Map from "./components/Map";
 import { Location } from "./types";
-import { getAllMovieLocations, searchMovies, getMovieLocations } from "./api/movieLocationsAPI";
+import { getAllMovieLocations, searchMovies, getMovieLocations, getRandomMovie } from "./api/movies";
 import { APP_CONSTANTS, ViewMode } from "./config/constants";
-import { API_CONFIG } from "./config/api";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -22,7 +21,6 @@ const App: React.FC = () => {
   
   // Estados para película aleatoria
   const [randomMovie, setRandomMovie] = useState<Location | null>(null);
-  const [randomMovieHistory, setRandomMovieHistory] = useState<number[]>([]);
   const [allLocations, setAllLocations] = useState<Location[]>([]);
   
   // Estados compartidos
@@ -60,31 +58,17 @@ const App: React.FC = () => {
     setSelectedLocation(null);
     setViewMode(APP_CONSTANTS.VIEW_MODES.RANDOM);
     
-    if (allLocations.length === 0) {
-      await loadAllLocations();
-    }
-    
-    if (allLocations.length > 0) {
-      const availableMovies = allLocations.filter(movie => !randomMovieHistory.includes(movie.id));
-      
-      if (availableMovies.length === 0) {
-        setRandomMovieHistory([]);
-        const randomIndex = Math.floor(Math.random() * allLocations.length);
-        const randomLocation = allLocations[randomIndex];
-        if (randomLocation && randomLocation.position) {
-          setRandomMovie(randomLocation);
-          setRandomMovieHistory([randomLocation.id]);
-          setSelectedLocation(randomLocation);
-        }
-      } else {
-        const randomIndex = Math.floor(Math.random() * availableMovies.length);
-        const randomLocation = availableMovies[randomIndex];
-        if (randomLocation && randomLocation.position) {
-          setRandomMovie(randomLocation);
-          setRandomMovieHistory(prev => [...prev, randomLocation.id]);
-          setSelectedLocation(randomLocation);
-        }
-      }
+    try {
+      setLoading(true);
+      setError(null);
+      const randomMovie = await getRandomMovie();
+      setRandomMovie(randomMovie);
+      setSelectedLocation(randomMovie);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error al obtener película aleatoria:", error);
+      setError(APP_CONSTANTS.ERROR_MESSAGES.SEARCH_RESULTS);
+      setLoading(false);
     }
   };
 
@@ -97,7 +81,6 @@ const App: React.FC = () => {
     setUserLocation(null);
     setSelectedLocation(null);
     setRandomMovie(null);
-    setRandomMovieHistory([]);
     setViewMode(APP_CONSTANTS.VIEW_MODES.NEARBY);
     
     if (allLocations.length === 0) {
@@ -175,7 +158,6 @@ const App: React.FC = () => {
 
     // Limpiar estados de otras funcionalidades
     setRandomMovie(null);
-    setRandomMovieHistory([]);
     setNearbyMovies([]);
     setUserLocation(null);
     setSelectedLocation(null);
@@ -298,18 +280,18 @@ const App: React.FC = () => {
                   className="result-item"
                   onClick={() => handleMovieSelect(movie.id)}
                 >
-                  {movie.poster_path ? (
+                  {movie.posterUrl ? (
                     <img 
-                      src={`${API_CONFIG.TMDB.IMAGE_BASE_URL}/w92${movie.poster_path}`} 
-                      alt={movie.title} 
+                      src={movie.posterUrl} 
+                      alt={movie.name} 
                       className="result-poster"
                     />
                   ) : (
                     <div className="no-poster">Sin póster</div>
                   )}
                   <div className="result-info">
-                    <h4>{movie.title}</h4>
-                    <p>{movie.release_date ? new Date(movie.release_date).getFullYear() : 'Año no disponible'}</p>
+                    <h4>{movie.name}</h4>
+                    <p>{movie.year}</p>
                   </div>
                 </li>
               ))}
