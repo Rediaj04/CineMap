@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Map from "./components/Map";
 import { Location } from "./types";
 import { getAllMovieLocations, searchMovies, getMovieLocations } from "./api/movieLocationsAPI";
@@ -13,7 +13,6 @@ const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState<boolean>(false);
-  const [searchLocations, setSearchLocations] = useState<Location[]>([]);
   
   // Estados para películas cercanas
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -53,7 +52,6 @@ const App: React.FC = () => {
     // Limpiar TODOS los estados relacionados con otras funcionalidades
     setSearchResults([]);
     setSearchTerm("");
-    setSearchLocations([]);
     setNearbyMovies([]);
     setUserLocation(null);
     setSelectedLocation(null);
@@ -91,10 +89,11 @@ const App: React.FC = () => {
     // Limpiar TODOS los estados relacionados con otras funcionalidades
     setSearchResults([]);
     setSearchTerm("");
-    setSearchLocations([]);
+    setNearbyMovies([]);
+    setUserLocation(null);
+    setSelectedLocation(null);
     setRandomMovie(null);
     setRandomMovieHistory([]);
-    setSelectedLocation(null);
     setViewMode('nearby');
     
     if (allLocations.length === 0) {
@@ -164,7 +163,6 @@ const App: React.FC = () => {
     setNearbyMovies([]);
     setUserLocation(null);
     setSelectedLocation(null);
-    setSearchLocations([]);
     setViewMode('search');
     
     try {
@@ -203,7 +201,6 @@ const App: React.FC = () => {
         if (uniqueLocations.length > 0) {
           const selectedMovie = uniqueLocations[0];
           setSelectedLocation(selectedMovie);
-          setSearchLocations(uniqueLocations);
           setError(null);
         } else {
           setError("No se encontraron ubicaciones válidas para esta película.");
@@ -237,7 +234,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Mapas Cinematográficos</h1>
+        <h1>CineMap</h1>
         <div className="header-controls">
           <form onSubmit={handleSearch} className="search-form">
             <input
@@ -332,7 +329,6 @@ const App: React.FC = () => {
                   onClick={() => {
                     setSelectedLocation(movie);
                     setViewMode('search');
-                    setSearchLocations([movie]);
                   }}
                 >
                   {movie.posterUrl ? (

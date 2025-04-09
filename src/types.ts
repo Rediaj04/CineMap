@@ -5,6 +5,9 @@ export interface Location {
     year: number;
     description: string;
     posterUrl?: string;
+    productionCountry?: string;
+    director?: string;
+    cast?: string[];
     distance?: number;
   }
   
