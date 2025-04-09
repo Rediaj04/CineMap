@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Map from "./components/Map";
 import { Location } from "./types";
 import { getAllMovieLocations, searchMovies, getMovieLocations } from "./api/movieLocationsAPI";
+import { APP_CONSTANTS, ViewMode } from "./config/constants";
+import { API_CONFIG } from "./config/api";
 import "./App.css";
 
 const App: React.FC = () => {
@@ -25,12 +27,13 @@ const App: React.FC = () => {
   
   // Estados compartidos
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [viewMode, setViewMode] = useState<'all' | 'random' | 'nearby' | 'search'>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>(APP_CONSTANTS.VIEW_MODES.ALL);
 
   // Cargar todas las ubicaciones de películas
   const loadAllLocations = async () => {
     try {
       setLoading(true);
+      setError(null);
       const movieLocations = await getAllMovieLocations();
       const uniqueLocations = movieLocations.filter((location, index, self) =>
         index === self.findIndex((l) => 
@@ -39,10 +42,9 @@ const App: React.FC = () => {
         )
       );
       setAllLocations(uniqueLocations);
-      setError(null);
     } catch (err) {
       console.error("Error al cargar ubicaciones:", err);
-      setError("No se pudieron cargar las ubicaciones de películas. Por favor, inténtalo de nuevo más tarde.");
+      setError(APP_CONSTANTS.ERROR_MESSAGES.LOADING_LOCATIONS);
     } finally {
       setLoading(false);
     }
@@ -52,10 +54,11 @@ const App: React.FC = () => {
     // Limpiar TODOS los estados relacionados con otras funcionalidades
     setSearchResults([]);
     setSearchTerm("");
+    setSearching(false);
     setNearbyMovies([]);
     setUserLocation(null);
     setSelectedLocation(null);
-    setViewMode('random');
+    setViewMode(APP_CONSTANTS.VIEW_MODES.RANDOM);
     
     if (allLocations.length === 0) {
       await loadAllLocations();
@@ -89,12 +92,13 @@ const App: React.FC = () => {
     // Limpiar TODOS los estados relacionados con otras funcionalidades
     setSearchResults([]);
     setSearchTerm("");
+    setSearching(false);
     setNearbyMovies([]);
     setUserLocation(null);
     setSelectedLocation(null);
     setRandomMovie(null);
     setRandomMovieHistory([]);
-    setViewMode('nearby');
+    setViewMode(APP_CONSTANTS.VIEW_MODES.NEARBY);
     
     if (allLocations.length === 0) {
       await loadAllLocations();
@@ -102,37 +106,50 @@ const App: React.FC = () => {
 
     if (navigator.geolocation) {
       setLoading(true);
+      setError(APP_CONSTANTS.LOADING_MESSAGES.GETTING_LOCATION);
+      
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const userLat = position.coords.latitude;
           const userLng = position.coords.longitude;
           setUserLocation([userLat, userLng]);
+          setError(APP_CONSTANTS.LOADING_MESSAGES.CALCULATING_DISTANCES);
           
-          const moviesWithDistance = allLocations.map(location => ({
-            ...location,
-            distance: calculateDistance(
-              userLat, 
-              userLng, 
-              location.position[0], 
-              location.position[1]
-            )
-          }));
+          // Optimización: Calcular distancias solo para las primeras 50 ubicaciones
+          const moviesWithDistance = allLocations
+            .slice(0, 50)
+            .map(location => ({
+              ...location,
+              distance: calculateDistance(
+                userLat, 
+                userLng, 
+                location.position[0], 
+                location.position[1]
+              )
+            }));
           
+          // Ordenar y tomar las 5 más cercanas
           const closestMovies = moviesWithDistance
             .sort((a, b) => (a.distance || 0) - (b.distance || 0))
             .slice(0, 5);
           
           setNearbyMovies(closestMovies);
           setLoading(false);
+          setError(null);
         },
         (error) => {
           console.error("Error al obtener la ubicación:", error);
-          setError("No se pudo obtener tu ubicación. Por favor, permite el acceso a la ubicación.");
+          setError(APP_CONSTANTS.ERROR_MESSAGES.LOCATION_ACCESS);
           setLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     } else {
-      setError("Tu navegador no soporta geolocalización.");
+      setError(APP_CONSTANTS.ERROR_MESSAGES.GEOLOCATION_NOT_SUPPORTED);
     }
   };
 
@@ -154,24 +171,24 @@ const App: React.FC = () => {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!searchTerm.trim()) return;
-    
-    // Limpiar TODOS los estados relacionados con otras funcionalidades
+
+    // Limpiar estados de otras funcionalidades
     setRandomMovie(null);
     setRandomMovieHistory([]);
     setNearbyMovies([]);
     setUserLocation(null);
     setSelectedLocation(null);
-    setViewMode('search');
-    
+    setViewMode(APP_CONSTANTS.VIEW_MODES.SEARCH);
+
     try {
       setSearching(true);
+      setError(null);
       const results = await searchMovies(searchTerm);
       setSearchResults(results);
     } catch (err) {
       console.error("Error al buscar películas:", err);
-      setError("Error al buscar películas. Por favor, inténtalo de nuevo.");
+      setError(APP_CONSTANTS.ERROR_MESSAGES.SEARCH_RESULTS);
     } finally {
       setSearching(false);
     }
@@ -180,37 +197,19 @@ const App: React.FC = () => {
   const handleMovieSelect = async (movieId: number) => {
     try {
       setLoading(true);
-      // Limpiar TODOS los estados relacionados con otras funcionalidades
-      setRandomMovie(null);
-      setRandomMovieHistory([]);
-      setNearbyMovies([]);
-      setUserLocation(null);
-      setViewMode('search');
+      setError(null);
+      const locations = await getMovieLocations(movieId);
       
-      const movieLocations = await getMovieLocations(movieId);
-      
-      if (movieLocations.length > 0) {
-        const uniqueLocations = movieLocations.filter((location, index, self) =>
-          index === self.findIndex((l) => 
-            l.position && 
-            l.position[0] === location.position[0] && 
-            l.position[1] === location.position[1]
-          )
-        );
-        
-        if (uniqueLocations.length > 0) {
-          const selectedMovie = uniqueLocations[0];
-          setSelectedLocation(selectedMovie);
-          setError(null);
-        } else {
-          setError("No se encontraron ubicaciones válidas para esta película.");
-        }
+      if (locations.length > 0) {
+        setSelectedLocation(locations[0]);
+        setViewMode(APP_CONSTANTS.VIEW_MODES.SEARCH);
+        setError(null);
       } else {
-        setError("No se encontraron ubicaciones para esta película.");
+        setError(APP_CONSTANTS.ERROR_MESSAGES.NO_LOCATIONS_FOUND);
       }
     } catch (err) {
       console.error("Error al obtener ubicaciones de la película:", err);
-      setError("Error al obtener ubicaciones de la película.");
+      setError(APP_CONSTANTS.ERROR_MESSAGES.MOVIE_LOCATIONS);
     } finally {
       setLoading(false);
     }
@@ -219,13 +218,13 @@ const App: React.FC = () => {
   // Determinar qué ubicaciones mostrar en el mapa
   const getLocationsToShow = () => {
     switch (viewMode) {
-      case 'random':
+      case APP_CONSTANTS.VIEW_MODES.RANDOM:
         return randomMovie ? [randomMovie] : [];
-      case 'nearby':
+      case APP_CONSTANTS.VIEW_MODES.NEARBY:
         return nearbyMovies;
-      case 'search':
+      case APP_CONSTANTS.VIEW_MODES.SEARCH:
         return selectedLocation ? [selectedLocation] : [];
-      case 'all':
+      case APP_CONSTANTS.VIEW_MODES.ALL:
       default:
         return allLocations;
     }
@@ -271,7 +270,7 @@ const App: React.FC = () => {
         <div className="map-container">
           {loading ? (
             <div className="loading-container">
-              <p>Cargando ubicaciones de películas...</p>
+              <p>{APP_CONSTANTS.LOADING_MESSAGES.LOADING_LOCATIONS}</p>
             </div>
           ) : error ? (
             <div className="error-container">
@@ -301,7 +300,7 @@ const App: React.FC = () => {
                 >
                   {movie.poster_path ? (
                     <img 
-                      src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`} 
+                      src={`${API_CONFIG.TMDB.IMAGE_BASE_URL}/w92${movie.poster_path}`} 
                       alt={movie.title} 
                       className="result-poster"
                     />
@@ -328,7 +327,7 @@ const App: React.FC = () => {
                   className="result-item"
                   onClick={() => {
                     setSelectedLocation(movie);
-                    setViewMode('search');
+                    setViewMode(APP_CONSTANTS.VIEW_MODES.SEARCH);
                   }}
                 >
                   {movie.posterUrl ? (
