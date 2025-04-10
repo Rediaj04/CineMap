@@ -60,14 +60,20 @@ const App: React.FC = () => {
     
     try {
       setLoading(true);
-      setError(null);
+      setError(APP_CONSTANTS.LOADING_MESSAGES.GETTING_MOVIE_DETAILS);
       const randomMovie = await getRandomMovie();
-      setRandomMovie(randomMovie);
-      setSelectedLocation(randomMovie);
-      setLoading(false);
+      
+      if (randomMovie.position[0] === 0 && randomMovie.position[1] === 0) {
+        setError(APP_CONSTANTS.ERROR_MESSAGES.NO_COUNTRY_FOUND);
+      } else {
+        setRandomMovie(randomMovie);
+        setSelectedLocation(randomMovie);
+        setError(null);
+      }
     } catch (error) {
       console.error("Error al obtener película aleatoria:", error);
-      setError(APP_CONSTANTS.ERROR_MESSAGES.SEARCH_RESULTS);
+      setError(APP_CONSTANTS.ERROR_MESSAGES.API_ERROR);
+    } finally {
       setLoading(false);
     }
   };
@@ -165,9 +171,15 @@ const App: React.FC = () => {
 
     try {
       setSearching(true);
-      setError(null);
+      setError(APP_CONSTANTS.LOADING_MESSAGES.SEARCHING);
       const results = await searchMovies(searchTerm);
-      setSearchResults(results);
+      
+      if (results.length === 0) {
+        setError(APP_CONSTANTS.ERROR_MESSAGES.NO_VALID_LOCATIONS);
+      } else {
+        setSearchResults(results);
+        setError(null);
+      }
     } catch (err) {
       console.error("Error al buscar películas:", err);
       setError(APP_CONSTANTS.ERROR_MESSAGES.SEARCH_RESULTS);

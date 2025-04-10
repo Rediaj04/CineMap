@@ -20,18 +20,26 @@ export const APP_CONSTANTS = {
     MOVIE_LOCATIONS_ERROR: 'Error al obtener ubicaciones de la película',
     PERMISSION_DENIED: 'Por favor, permite el acceso a tu ubicación para usar esta función',
     POSITION_UNAVAILABLE: 'No se pudo obtener tu ubicación. Por favor, verifica tu conexión GPS',
-    TIMEOUT: 'La solicitud de ubicación tardó demasiado. Por favor, intenta de nuevo'
+    TIMEOUT: 'La solicitud de ubicación tardó demasiado. Por favor, intenta de nuevo',
+    NO_COUNTRY_FOUND: 'No se pudo determinar el país de filmación de esta película',
+    GEOCODING_ERROR: 'Error al obtener las coordenadas del país de filmación',
+    API_ERROR: 'Error al comunicarse con los servicios de películas'
   },
   SUCCESS_MESSAGES: {
     LOCATIONS_LOADED: 'Ubicaciones cargadas correctamente',
     SEARCH_COMPLETE: 'Búsqueda completada',
-    LOCATION_LOADED: 'Ubicaciones cargadas correctamente'
+    LOCATION_LOADED: 'Ubicaciones cargadas correctamente',
+    MOVIE_FOUND: 'Película encontrada con ubicación real',
+    LOCATION_FOUND: 'Ubicación de filmación encontrada'
   },
   LOADING_MESSAGES: {
     SEARCHING: 'Buscando...',
     LOADING_LOCATIONS: 'Cargando ubicaciones de películas...',
     GETTING_LOCATION: 'Obteniendo tu ubicación...',
-    CALCULATING_DISTANCES: 'Calculando distancias...'
+    CALCULATING_DISTANCES: 'Calculando distancias...',
+    GETTING_MOVIE_DETAILS: 'Obteniendo detalles de la película...',
+    GETTING_COUNTRY_INFO: 'Buscando país de filmación...',
+    GETTING_COORDINATES: 'Obteniendo coordenadas del país...'
   }
 } as const;
 
