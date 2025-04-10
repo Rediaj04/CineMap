@@ -153,7 +153,7 @@ const MovieInfo: React.FC<MovieInfoProps> = ({ movie }) => {
 ### Instalación
 ```bash
 # Clonar repositorio
-git clone https://github.com/tu-usuario/cinemap.git
+git clone https://github.com/Rediaj04/cinemap.git
 cd cinemap
 
 # Instalar dependencias
