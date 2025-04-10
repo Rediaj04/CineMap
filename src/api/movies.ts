@@ -1,16 +1,63 @@
 import { API_CONFIG } from '../config/api';
 import { Location } from '../types';
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 segundo
+
+const cache = new Map<string, any>();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hora
+
+const getCachedData = (key: string) => {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedData = (key: string, data: any) => {
+  cache.set(key, {
+    data,
+    timestamp: Date.now()
+  });
+};
+
+const fetchWithRetry = async (url: string, options: RequestInit = {}, retries = MAX_RETRIES): Promise<Response> => {
+  const cacheKey = `fetch:${url}`;
+  const cached = getCachedData(cacheKey);
+  if (cached) {
+    return new Response(JSON.stringify(cached));
+  }
+
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    setCachedData(cacheKey, data);
+    return new Response(JSON.stringify(data));
+  } catch (error) {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw error;
+  }
+};
+
 export const getAllMovieLocations = async (): Promise<Location[]> => {
   try {
-    const response = await fetch(`${API_CONFIG.TMDB.BASE_URL}/movie/popular?api_key=${API_CONFIG.TMDB.API_KEY}`);
+    const response = await fetchWithRetry(
+      `${API_CONFIG.TMDB.BASE_URL}/movie/popular?api_key=${API_CONFIG.TMDB.API_KEY}`
+    );
     const data = await response.json();
     
     const locations: Location[] = [];
     for (const movie of data.results) {
       try {
         // Obtener detalles adicionales de OMDB
-        const omdbResponse = await fetch(
+        const omdbResponse = await fetchWithRetry(
           `${API_CONFIG.OMDB.BASE_URL}/?apikey=${API_CONFIG.OMDB.API_KEY}&t=${encodeURIComponent(movie.title)}&y=${movie.release_date.substring(0,4)}`
         );
         const omdbData = await omdbResponse.json();
@@ -19,25 +66,33 @@ export const getAllMovieLocations = async (): Promise<Location[]> => {
         let description = movie.overview || '';
         
         if (omdbData.Country) {
-          const geocodeResponse = await fetch(
-            `${API_CONFIG.GEOCODING.BASE_URL}?q=${encodeURIComponent(omdbData.Country)}&format=json&limit=1`
-          );
-          const geocodeData = await geocodeResponse.json();
-          
-          if (geocodeData && geocodeData.length > 0) {
-            position = [parseFloat(geocodeData[0].lat), parseFloat(geocodeData[0].lon)];
-            description = `Filmada en ${omdbData.Country}\n${description}`;
+          try {
+            const geocodeResponse = await fetchWithRetry(
+              `${API_CONFIG.GEOCODING.BASE_URL}?q=${encodeURIComponent(omdbData.Country)}&format=json&limit=1`
+            );
+            const geocodeData = await geocodeResponse.json();
+            
+            if (geocodeData && geocodeData.length > 0) {
+              position = [parseFloat(geocodeData[0].lat), parseFloat(geocodeData[0].lon)];
+              description = `Filmada en ${omdbData.Country}\n${description}`;
+            }
+          } catch (error) {
+            console.warn(`No se pudo obtener geocodificación para ${omdbData.Country}:`, error);
           }
         } else if (movie.production_countries && movie.production_countries.length > 0) {
           const country = movie.production_countries[0].name;
-          const geocodeResponse = await fetch(
-            `${API_CONFIG.GEOCODING.BASE_URL}?q=${encodeURIComponent(country)}&format=json&limit=1`
-          );
-          const geocodeData = await geocodeResponse.json();
-          
-          if (geocodeData && geocodeData.length > 0) {
-            position = [parseFloat(geocodeData[0].lat), parseFloat(geocodeData[0].lon)];
-            description = `Filmada en ${country}\n${description}`;
+          try {
+            const geocodeResponse = await fetchWithRetry(
+              `${API_CONFIG.GEOCODING.BASE_URL}?q=${encodeURIComponent(country)}&format=json&limit=1`
+            );
+            const geocodeData = await geocodeResponse.json();
+            
+            if (geocodeData && geocodeData.length > 0) {
+              position = [parseFloat(geocodeData[0].lat), parseFloat(geocodeData[0].lon)];
+              description = `Filmada en ${country}\n${description}`;
+            }
+          } catch (error) {
+            console.warn(`No se pudo obtener geocodificación para ${country}:`, error);
           }
         }
 
