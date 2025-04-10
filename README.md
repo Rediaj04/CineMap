@@ -13,89 +13,121 @@
 </div>
 
 ## 📋 Índice
-- [Descripción](#-descripción)
-- [Características Implementadas](#-características-implementadas)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
-- [APIs Utilizadas](#-apis-utilizadas)
-- [Componentes](#-componentes)
-- [Instalación y Uso](#-instalación-y-uso)
-- [Configuración](#-configuración)
+- [Descripción General](#-descripción-general)
+- [Especificaciones Técnicas](#-especificaciones-técnicas)
+- [Arquitectura y Estructura](#-arquitectura-y-estructura)
+- [APIs y Flujo de Datos](#-apis-y-flujo-de-datos)
+- [Componentes y Funcionalidades](#-componentes-y-funcionalidades)
+- [Instalación y Configuración](#-instalación-y-configuración)
+- [Uso y Ejemplos](#-uso-y-ejemplos)
+- [Pruebas y Validación](#-pruebas-y-validación)
+- [Mejoras Futuras](#-mejoras-futuras)
 
-## 🎯 Descripción
-CineMap es una aplicación web que muestra películas en un mapa mundial, indicando sus ubicaciones reales de filmación. La aplicación utiliza múltiples APIs para obtener y mostrar información precisa sobre dónde se filmaron las películas.
+## 🎯 Descripción General
 
-<div align="center">
-  <img src="src/components/Map.css" alt="Mapa de ejemplo" width="600"/>
-  <p><i>Visualización de películas en el mapa mundial</i></p>
-</div>
+CineMap es una aplicación web interactiva que permite visualizar películas en un mapa mundial, mostrando sus ubicaciones reales de filmación. La aplicación integra múltiples APIs para proporcionar una experiencia enriquecedora al usuario, combinando datos cinematográficos con geolocalización.
 
-## ✨ Características Implementadas
+### Objetivos Principales
+- Visualizar películas en su contexto geográfico real
+- Proporcionar información detallada sobre las producciones
+- Ofrecer múltiples formas de descubrir películas
+- Crear una experiencia de usuario intuitiva y atractiva
 
-### 🔍 Búsqueda de Películas
-- ✅ Búsqueda por título
-- ✅ Visualización de resultados en el mapa
-- ✅ Información detallada de cada película
+## 🛠 Especificaciones Técnicas
 
-### 🎲 Película Aleatoria
-- ✅ Selección aleatoria de películas populares
-- ✅ Visualización de su ubicación de filmación
-- ✅ Detalles completos de la película
+### Requisitos del Sistema
+- Node.js (v14 o superior)
+- npm (v6 o superior)
+- Navegador web moderno con soporte para geolocalización
 
-### 🗺 Visualización en Mapa
-- ✅ Mapa interactivo con zoom y navegación
-- ✅ Marcadores personalizados con pósters
-- ✅ Popups informativos al hacer clic
+### Tecnologías Principales
+- **Frontend**:
+  - React 18.2.0
+  - TypeScript
+  - React-Leaflet 4.2.1
+  - Leaflet 1.9.4
+  - CSS Modules
 
-## 📁 Estructura del Proyecto
+### APIs Externas
+- **TMDB API**: Información de películas
+- **OMDB API**: Detalles adicionales
+- **Nominatim**: Geocodificación de ubicaciones
+
+### Dependencias Principales
+```json
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1",
+    "leaflet": "^1.9.4",
+    "typescript": "^4.9.5"
+  }
+}
+```
+
+## 🏗 Arquitectura y Estructura
+
+### Estructura del Proyecto
 ```
 src/
-├── api/
-│   ├── movies.ts              # Funciones principales de películas
-│   ├── movieLocationsAPI.ts   # API de ubicaciones
-│   ├── omdbAPI.ts             # Integración con OMDB
-│   └── tmdbAPI.ts             # Integración con TMDB
-├── components/
-│   ├── Map.tsx                # Componente principal del mapa
-│   ├── Map.css                # Estilos del mapa
-│   ├── MovieInfo.tsx          # Información de película
-│   ├── MovieInfo.css          # Estilos de información
-│   └── MovieRecommendations.tsx # Recomendaciones
-├── config/
-│   ├── api.ts                 # Configuración de APIs
-│   └── constants.ts           # Constantes de la aplicación
-└── types.ts                   # Definiciones de tipos
+├── api/                    # Lógica de integración con APIs
+│   ├── movies.ts          # Funciones principales
+│   ├── movieLocationsAPI.ts
+│   ├── omdbAPI.ts
+│   └── tmdbAPI.ts
+├── components/            # Componentes React
+│   ├── Map.tsx           # Componente principal del mapa
+│   ├── MovieInfo.tsx     # Información de película
+│   └── ...
+├── config/               # Configuración
+│   ├── api.ts           # Configuración de APIs
+│   └── constants.ts     # Constantes globales
+└── types.ts             # Definiciones de tipos TypeScript
 ```
 
-## 🔌 APIs Utilizadas
+### Patrones de Diseño
+- **Componentes Funcionales**: Uso de React Hooks
+- **Gestión de Estado**: useState y useEffect
+- **Composición de Componentes**: Reutilización y modularidad
+- **Manejo de Errores**: Try-catch y mensajes de error personalizados
 
-### TMDB API
-```typescript
-// config/api.ts
-export const API_CONFIG = {
-  TMDB: {
-    BASE_URL: "https://api.themoviedb.org/3",
-    API_KEY: process.env.REACT_APP_TMDB_API_KEY,
-    IMAGE_BASE_URL: "https://image.tmdb.org/t/p",
-    DEFAULT_LANGUAGE: 'es-ES'
-  }
-};
-```
+## 🔌 APIs y Flujo de Datos
 
-### OMDB API
-```typescript
-// config/api.ts
-export const API_CONFIG = {
-  OMDB: {
-    BASE_URL: "https://www.omdbapi.com",
-    API_KEY: process.env.REACT_APP_OMDB_API_KEY
-  }
-};
-```
+### Integración de APIs
+1. **TMDB API**:
+   ```typescript
+   // config/api.ts
+   export const API_CONFIG = {
+     TMDB: {
+       BASE_URL: "https://api.themoviedb.org/3",
+       API_KEY: process.env.REACT_APP_TMDB_API_KEY,
+       IMAGE_BASE_URL: "https://image.tmdb.org/t/p",
+       DEFAULT_LANGUAGE: 'es-ES'
+     }
+   };
+   ```
 
-## 🧩 Componentes Principales
+2. **OMDB API**:
+   ```typescript
+   export const API_CONFIG = {
+     OMDB: {
+       BASE_URL: "https://www.omdbapi.com",
+       API_KEY: process.env.REACT_APP_OMDB_API_KEY
+     }
+   };
+   ```
 
-### Map.tsx
-Componente principal que maneja la visualización del mapa y los marcadores:
+### Flujo de Datos
+1. Usuario realiza una acción (búsqueda/película aleatoria)
+2. Consulta a TMDB para datos básicos
+3. Consulta a OMDB para país de filmación
+4. Geocodificación del país
+5. Renderizado en el mapa
+
+## 🧩 Componentes y Funcionalidades
+
+### Componente Map
 ```typescript
 const Map: React.FC<MapProps> = ({ 
   locations, 
@@ -126,31 +158,29 @@ const Map: React.FC<MapProps> = ({
 };
 ```
 
-### MovieInfo.tsx
-Componente que muestra la información detallada de una película:
-```typescript
-const MovieInfo: React.FC<MovieInfoProps> = ({ movie }) => {
-  return (
-    <div className="movie-info">
-      <h3>{movie.name}</h3>
-      <p>{movie.description}</p>
-      <p>Año: {movie.year}</p>
-      {movie.productionCountry && (
-        <p>País de producción: {movie.productionCountry}</p>
-      )}
-    </div>
-  );
-};
-```
+### Funcionalidades Principales
+1. **Búsqueda de Películas**:
+   - Búsqueda por título
+   - Filtrado de resultados
+   - Visualización en mapa
 
-## 🚀 Instalación y Uso
+2. **Película Aleatoria**:
+   - Selección aleatoria de películas populares
+   - Visualización de ubicación
+   - Detalles completos
 
-### Requisitos
-- Node.js (v14 o superior)
-- npm (v6 o superior)
+3. **Visualización en Mapa**:
+   - Interactividad completa
+   - Marcadores personalizados
+   - Popups informativos
+
+## 🚀 Instalación y Configuración
+
+### Requisitos Previos
+- Node.js y npm instalados
 - Claves API para TMDB y OMDB
 
-### Instalación
+### Pasos de Instalación
 ```bash
 # Clonar repositorio
 git clone https://github.com/Rediaj04/cinemap.git
@@ -167,59 +197,87 @@ cp .env.example .env
 npm start
 ```
 
-## ⚙ Configuración
-
-### Variables de Entorno
-Crear un archivo `.env` en la raíz del proyecto:
+### Configuración de Variables de Entorno
 ```env
 REACT_APP_TMDB_API_KEY=tu_clave_tmdb
 REACT_APP_OMDB_API_KEY=tu_clave_omdb
 ```
 
-### Dependencias Principales
-```json
-{
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-leaflet": "^4.2.1",
-    "leaflet": "^1.9.4"
-  }
-}
-```
+## 💻 Uso y Ejemplos
+
+### Búsqueda de Películas
+1. Ingresa el título en la barra de búsqueda
+2. Los resultados se mostrarán en el mapa
+3. Haz clic en un marcador para ver detalles
+
+### Película Aleatoria
+1. Haz clic en "Película Aleatoria"
+2. El mapa se centrará en la ubicación
+3. Se mostrarán los detalles completos
+
+### Películas Cercanas
+1. Permite el acceso a tu ubicación
+2. Se mostrarán las películas más cercanas
+3. Se indicará la distancia a cada ubicación
+
+## 🧪 Pruebas y Validación
+
+### Pruebas de Funcionalidad
+- Validación de respuestas de API
+- Manejo de errores de red
+- Comportamiento de marcadores
+- Interactividad del mapa
+
+### Validación de Datos
+- Verificación de coordenadas
+- Validación de información de películas
+- Comprobación de geocodificación
+
+## 🔮 Mejoras Futuras
+
+### Mejoras Técnicas
+1. **Optimización de Rendimiento**:
+   - Implementación de virtualización para grandes conjuntos de datos
+   - Mejora del sistema de caché
+   - Optimización de peticiones a API
+
+2. **Nuevas Funcionalidades**:
+   - Filtros avanzados por año, género, etc.
+   - Rutas de filmación
+   - Comparación de ubicaciones
+   - Modo offline
+
+3. **Mejoras de UX**:
+   - Animaciones más fluidas
+   - Temas personalizables
+   - Modo oscuro/claro
+   - Soporte para más idiomas
+
+4. **Integración de APIs**:
+   - Google Maps como alternativa
+   - Wikipedia para información adicional
+   - YouTube para tráilers
+   - Redes sociales para compartir
+
+### Consideraciones Técnicas
+- Implementación de PWA
+- Mejora de la accesibilidad
+- Optimización para móviles
+- Internacionalización completa
 
 ## 📝 Notas de Implementación
 
-### Obtención de Ubicaciones
-El sistema obtiene las ubicaciones reales de filmación siguiendo este proceso:
-1. Obtiene la película de TMDB
-2. Consulta OMDB para el país de filmación
-3. Si no encuentra en OMDB, usa el país de producción de TMDB
-4. Convierte el país en coordenadas usando geocodificación
-
 ### Manejo de Errores
-- Validación de respuestas de API
-- Mensajes de error claros para el usuario
-- Fallback a datos alternativos cuando es posible
+- Sistema de reintentos para peticiones fallidas
+- Mensajes de error claros y descriptivos
+- Fallbacks para datos faltantes
 
-## 🔄 Flujo de Datos
-1. Usuario realiza una acción (búsqueda, película aleatoria)
-2. Se consulta TMDB para obtener datos básicos
-3. Se consulta OMDB para obtener país de filmación
-4. Se geocodifica el país para obtener coordenadas
-5. Se muestra la información en el mapa
+### Optimizaciones
+- Caché de peticiones a API
+- Lazy loading de imágenes
+- Optimización de renderizado
 
-## 📊 Estadísticas de Implementación
-
-### Tecnologías
-- React: 100% ✅
-- TypeScript: 100% ✅
-- Leaflet: 100% ✅
-- TMDB API: 100% ✅
-- OMDB API: 100% ✅
-
-### Funcionalidades
-- Búsqueda: 100% ✅
-- Mapa interactivo: 100% ✅
-- Información detallada: 100% ✅
-- Película aleatoria: 100% ✅
+### Seguridad
+- Validación de datos de entrada
+- Manejo seguro de claves API
+- Protección contra XSS
