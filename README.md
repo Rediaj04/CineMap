@@ -281,3 +281,9 @@ REACT_APP_OMDB_API_KEY=tu_clave_omdb
 - Validación de datos de entrada
 - Manejo seguro de claves API
 - Protección contra XSS
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+Copyright © 2025 CineMap
