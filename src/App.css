@@ -48,33 +48,51 @@ body {
   border-bottom: 1px solid rgba(255, 77, 77, 0.2);
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.header-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 77, 77, 0.6));
 }
 
 .App-header h1 {
-  font-size: 1.8rem;
+  font-size: 2.8rem;
   font-weight: 700;
   background: linear-gradient(45deg, #ff4d4d, #ff8c8c);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: var(--neon-glow);
-  margin-bottom: 0.8rem;
-  text-align: center;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .header-controls {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .search-form {
   display: flex;
   gap: 1rem;
   flex: 1;
+  max-width: 500px;
 }
 
 .search-input {

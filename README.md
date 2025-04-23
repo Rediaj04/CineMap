@@ -1,7 +1,8 @@
 # 🎬 CineMap - Mapa de Ubicaciones Cinematográficas
 
 <div align="center">
-  <img src="src/logo.svg" alt="CineMap Logo" width="200"/>
+  <img src="public/assets/logo.png" alt="CineMap Logo" width="150" style="vertical-align: middle; margin-right: 10px;"/>
+  <h1 style="display: inline-block; margin: 0; font-size: 2.5rem;">CineMap</h1>
   
   <p>Visualiza películas en su ubicación real de filmación</p>
   

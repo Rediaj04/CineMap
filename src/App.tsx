@@ -226,7 +226,10 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>CineMap</h1>
+        <div className="header-title">
+          <img src="/assets/logo.png" alt="CineMap Logo" className="header-logo" />
+          <h1>CineMap</h1>
+        </div>
         <div className="header-controls">
           <form onSubmit={handleSearch} className="search-form">
             <input
