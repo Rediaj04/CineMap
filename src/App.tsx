@@ -58,23 +58,22 @@ const App: React.FC = () => {
     setSelectedLocation(null);
     setViewMode(APP_CONSTANTS.VIEW_MODES.RANDOM);
     
-    try {
-      setLoading(true);
-      setError(APP_CONSTANTS.LOADING_MESSAGES.GETTING_MOVIE_DETAILS);
-      const randomMovie = await getRandomMovie();
-      
-      if (randomMovie.position[0] === 0 && randomMovie.position[1] === 0) {
-        setError(APP_CONSTANTS.ERROR_MESSAGES.NO_COUNTRY_FOUND);
-      } else {
-        setRandomMovie(randomMovie);
-        setSelectedLocation(randomMovie);
-        setError(null);
+    while (true) {
+      try {
+        setLoading(true);
+        const randomMovie = await getRandomMovie();
+        
+        if (randomMovie.position[0] !== 0 && randomMovie.position[1] !== 0) {
+          setRandomMovie(randomMovie);
+          setSelectedLocation(randomMovie);
+          setError(null);
+          break;
+        }
+      } catch (error) {
+        console.error("Error al obtener película aleatoria:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error al obtener película aleatoria:", error);
-      setError(APP_CONSTANTS.ERROR_MESSAGES.API_ERROR);
-    } finally {
-      setLoading(false);
     }
   };
 
