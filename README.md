@@ -15,11 +15,11 @@
 
 ## 📋 Índice
 - [Descripción General](#-descripción-general)
+- [Instalación y Configuración](#-instalación-y-configuración)
 - [Especificaciones Técnicas](#-especificaciones-técnicas)
 - [Arquitectura y Estructura](#-arquitectura-y-estructura)
 - [APIs y Flujo de Datos](#-apis-y-flujo-de-datos)
 - [Componentes y Funcionalidades](#-componentes-y-funcionalidades)
-- [Instalación y Configuración](#-instalación-y-configuración)
 - [Uso y Ejemplos](#-uso-y-ejemplos)
 - [Pruebas y Validación](#-pruebas-y-validación)
 - [Mejoras Futuras](#-mejoras-futuras)
@@ -33,6 +33,35 @@ CineMap es una aplicación web interactiva que permite visualizar películas en 
 - Proporcionar información detallada sobre las producciones
 - Ofrecer múltiples formas de descubrir películas
 - Crear una experiencia de usuario intuitiva y atractiva
+
+## 🚀 Instalación y Configuración
+
+### Requisitos Previos
+- Node.js y npm instalados
+- Claves API para TMDB y OMDB
+
+### Pasos de Instalación
+```bash
+# Clonar repositorio
+git clone https://github.com/Rediaj04/cinemap.git
+cd cinemap
+
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus claves API
+
+# Iniciar desarrollo
+npm start
+```
+
+### Configuración de Variables de Entorno
+```env
+REACT_APP_TMDB_API_KEY=tu_clave_tmdb
+REACT_APP_OMDB_API_KEY=tu_clave_omdb
+```
 
 ## 🛠 Especificaciones Técnicas
 
@@ -174,35 +203,6 @@ const Map: React.FC<MapProps> = ({
    - Interactividad completa
    - Marcadores personalizados
    - Popups informativos
-
-## 🚀 Instalación y Configuración
-
-### Requisitos Previos
-- Node.js y npm instalados
-- Claves API para TMDB y OMDB
-
-### Pasos de Instalación
-```bash
-# Clonar repositorio
-git clone https://github.com/Rediaj04/cinemap.git
-cd cinemap
-
-# Instalar dependencias
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus claves API
-
-# Iniciar desarrollo
-npm start
-```
-
-### Configuración de Variables de Entorno
-```env
-REACT_APP_TMDB_API_KEY=tu_clave_tmdb
-REACT_APP_OMDB_API_KEY=tu_clave_omdb
-```
 
 ## 💻 Uso y Ejemplos
 
